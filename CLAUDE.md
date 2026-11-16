@@ -112,9 +112,10 @@ The Next Destination の確定ルール（テロップの文型・尺・投稿�
 ## 素材の受け取り（Google Drive）
 
 - 大きな動画はDriveのリンクで受け取ることがある。コネクターの `download_file_content` は中身を会話に返すため動画には使えない
-- 手順：共有範囲を「リンクを知っている全員（閲覧者）」にしてから
-  `curl -L -o <出力> "https://drive.usercontent.google.com/download?id=<ID>&export=download&confirm=t"` で取得し、`file` で中身が動画か確認する（ログイン画面のHTMLが返ることがある）
-- 共有範囲の変更をClaude側で行ってよいかは、**このリポジトリではまだ確認していない。** 必要になったら最初にユーザーに確認し、決まったらここに書く
+- 手順：
+  1. `get_file_permissions` で共有範囲を確認する。「リンクを知っている全員」でなければ `share_file`（permissionId `anyoneWithLink`、role `reader`）で変更する。**この変更はユーザーから恒久的に許可済み（毎回の確認は不要）**
+  2. `curl -L -o <出力> "https://drive.usercontent.google.com/download?id=<ID>&export=download&confirm=t"` で取得し、`file` で中身が動画か確認する（ログイン画面のHTMLが返ることがある）
+  3. コネクターには共有を外す機能がないため、「制限付き」に戻す作業はユーザーに依頼する
 - ネットワーク：Driveのホスト（`drive.google.com`、`drive.usercontent.google.com`）が許可されたクラウド環境で作業する
 
 ## 作業上の作法
