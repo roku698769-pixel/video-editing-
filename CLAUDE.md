@@ -20,7 +20,8 @@ The Next Destination の確定ルール（テロップの文型・尺・投稿�
 ## セッション開始時の準備
 
 1. `ffmpeg`、`ffprobe`、`python3` が使えるか確認する
-2. 新しい案件は `projects/<案件名>/` に作る
+2. テロップを使う案件では `bash scripts/get_fonts.sh` でフォントを取得する（フォント本体はGitに入れていない）
+3. 新しい案件は `projects/<案件名>/` に作る
 
 ## フォルダ構成
 
@@ -34,7 +35,7 @@ The Next Destination の確定ルール（テロップの文型・尺・投稿�
 │   ├── telop.ass
 │   ├── notes.md        ← 案件のメモ（ユーザーの指示、決まったこと、修正履歴）
 │   └── work/           ← 中間ファイル・チャンク・確認用フレーム（Git対象外）
-├── fonts/              ← 案件で使うフォント（edit.json の fontsdir で読み込む）
+├── fonts/              ← テロップ用フォント（get_fonts.sh で取得。直下に置く。Git対象外）
 ├── scripts/
 └── output/             ← 完成動画（MP4はGit対象外）
 ```
@@ -44,17 +45,20 @@ The Next Destination の確定ルール（テロップの文型・尺・投稿�
 1. **素材の受け取り**：ファイルの添付か、Google Driveのリンクで受け取る（下記）
 2. **下調べ**：`python3 scripts/probe.py footage/<案件>/` で尺・解像度・fps・回転・HDR・音声を一覧にする。気になる点（可変fps、HDR、縦横の混在など）はユーザーに伝える
 3. **構成の相談**：素材の中身をフレーム画像で確認し、使う区間・順番・つなぎ・テロップ・尺をユーザーと決める。確認していない素材の中身を推測で語らない
-4. **確認用の書き出し**：`python3 scripts/edit.py projects/<案件>/edit.json --draft` で半分の解像度の軽い版を作り、構成とタイミングを見てもらう
-5. **本番の書き出し**：`python3 scripts/edit.py projects/<案件>/edit.json` でマスターと投稿用（軽量版）を作る
-6. **検証**：`python3 scripts/verify.py projects/<案件>/work/manifest.json` でフレーム数・音量を確認し、書き出された確認用フレームを目視する。数値を添えて報告する
-7. **区切りごとに commit & push**（構成確定・完成）。素材と動画はGitに入れない
+4. **色の決定**：`scripts/compare.py` で、HDRの変換方式やカラーグレーディングの候補を同じフレームで並べ、ユーザーに選んでもらう
+5. **確認用の書き出し**：`python3 scripts/edit.py projects/<案件>/edit.json --draft` で半分の解像度の軽い版を作り、構成とタイミングを見てもらう
+6. **本番の書き出し**：`python3 scripts/edit.py projects/<案件>/edit.json` でマスターと投稿用（軽量版）を作る
+7. **検証**：`python3 scripts/verify.py projects/<案件>/work/manifest.json` でフレーム数・色空間・音量を確認し、書き出された確認用フレームを目視する。数値を添えて報告する
+8. **区切りごとに commit & push**（構成確定・完成）。素材と動画はGitに入れない
 
 ## スクリプト
 
-- `probe.py <ファイル/フォルダ>`：素材の一覧（回転を反映した表示サイズ、fps、可変fpsの疑い、HDR、音声）
-- `edit.py <edit.json> [--draft] [--no-light] [--clean]`：書き出し。出力は `output/<name>_master.mp4`・`_post.mp4`（`--draft` は `_draft.mp4`）
-- `telop.py <telop.json> <telop.ass>`：テロップのASSを作る（ぼかし影、フェード、下からせり上がる出方 `anim: "rise"`）
-- `verify.py <manifest.json> [--at 秒,...] [--silence]`：フレーム数の照合、確認用フレームの書き出し（冒頭・各つなぎの前後・末尾・指定時刻）、ラウドネスとピーク、無音区間
+- `probe.py <ファイル/フォルダ>`：素材の一覧（回転を反映した表示サイズ、fps、可変fpsの疑い、HDR、10bit、音声）
+- `edit.py <edit.json> [--draft] [--no-light] [--clean]`：書き出し。出力は `output/<name>_master.mp4`・`_post.mp4`（`--draft` は `_draft.mp4`）。テロップのフォントが代替フォントに置き換わる場合は止まる
+- `compare.py <edit.json> <クリップ番号> <秒> --variants <variants.json>`：設定違い（HDR変換方式、グレーディング）を同じ1フレームで横に並べたPNGを作る。書式はスクリプト冒頭のコメント
+- `telop.py <telop.json> <telop.ass>`：テロップのASSを作る。出方・消え方はイージング付きで1フレームずつ計算する（書式はスクリプト冒頭のコメント）
+- `get_fonts.sh [名前...]`：フォントを npm（@expo-google-fonts）から `fonts/` に取得し、ASSで指定する名前を一覧表示する
+- `verify.py <manifest.json> [--at 秒,...] [--silence]`：フレーム数の照合、色空間（BT.709）、確認用フレームの書き出し（冒頭・各つなぎの前後・末尾・指定時刻）、ラウドネスとトゥルーピーク、無音区間
 
 ## edit.json の書式
 
@@ -62,38 +66,66 @@ The Next Destination の確定ルール（テロップの文型・尺・投稿�
 {
   "name": "lisbon_day1",
   "format": "vertical",
-  "fps": 30,
-  "look": "eq=saturation=1.08:contrast=1.03",
+  "fps": "auto",
+  "grade": {"contrast": 0.2, "saturation": 1.08, "vibrance": 0.15, "warmth": 0.1,
+            "sharpen": 0.25, "vignette": 0.2},
+  "tonemap": {"method": "hable", "npl": 100},
+  "loudness": {"i": -14, "tp": -1.0},
   "subtitles": "projects/lisbon_day1/telop.ass",
   "clips": [
-    {"src": "footage/lisbon/IMG_0012.MOV", "in": 3.2, "out": 7.8,
+    {"src": "footage/lisbon/IMG_0012.MOV", "in": 3.2, "out": 7.8, "stabilize": true,
      "transition": {"type": "fade", "dur": 0.5}},
-    {"src": "footage/lisbon/IMG_0015.MOV", "in": 0, "out": 4, "speed": 1.5, "focus_x": 0.35},
-    {"src": "footage/lisbon/IMG_0020.MOV", "in": 10, "out": 13, "fit": "blur", "volume": 0.3},
+    {"src": "footage/lisbon/IMG_0015.MOV", "in": 0, "out": 4, "speed": 0.5, "interp": "motion",
+     "focus_x": 0.35},
+    {"src": "footage/lisbon/IMG_0020.MOV", "in": 10, "out": 13, "fit": "blur",
+     "denoise": true, "highpass": 80, "grade": {"exposure": 0.3}},
     {"src": "footage/lisbon/photo.jpg", "dur": 2.5, "fit": "fit"}
   ],
   "audio": [
-    {"src": "footage/lisbon/narration.wav", "start": 0.4, "volume_db": 2,
-     "fade_in": 0, "fade_out": 0}
+    {"src": "footage/lisbon/narration.wav", "start": 0.4, "volume_db": 2, "denoise": true}
   ]
 }
 ```
 
 - `format`：`vertical`（1080×1920）／`horizontal`（1920×1080）／`square`（1080×1080）／`{"w":..,"h":..}`
-- `fps`：出力のフレームレート（整数）。素材がバラバラでも、ここに揃える
-- `look`：全クリップにかける色調整（ffmpegのフィルタ文字列）。クリップごとに外すなら `"look": false`
+- `fps`：`"auto"`（既定。素材の尺で最も多いフレームレートを標準値に合わせて使う。29.97なら `30000/1001`）／数値／`"30000/1001"` のような分数
+- `grade`：全クリップにかけるカラーグレーディング。クリップの `grade` で項目ごとに上書きでき、`"grade": false` でそのクリップだけ外せる。RGB 16bitで処理する
+  - `exposure`（段。+1で倍の明るさ）、`warmth`（-1〜1。+で暖色）、`contrast`・`shadows`・`highlights`（-1〜1。1本のトーンカーブにまとめる）、`saturation`（1が元のまま）、`vibrance`（色の薄いところを中心に彩度を上げる。0.1〜0.3程度）、`sharpen`（0〜1。CAS）、`vignette`（0〜1。周辺減光の強さ）、`deband`（true でグラデーションの段差を減らす）、`lut`（.cube ファイル）、`curves`（ffmpeg curves の指定をそのまま）
+- `tonemap`：HDR素材（HLG/PQ）をSDRにする方式。`method` は `hable`／`mobius`／`reinhard`／`clip`、`npl` は基準の明るさ。**素材ごとに見え方が違うので compare.py で比べて決める**。クリップごとに `"tonemap": {...}` で上書き、`"tonemap": false` で変換しない
+- `loudness`：完成版の音量。既定は統合ラウドネス -14 LUFS・トゥルーピーク -1 dBTP（YouTube向け）。2パスの loudnorm（linear）で合わせる。`null` で合わせない
 - クリップの項目
   - `in`／`out`：素材の使う区間（秒）。`out` を省くと素材の最後まで。静止画は `dur`（秒）
   - `fit`：`fill`（はみ出しを切る。既定）／`fit`（全体を収めて黒帯）／`blur`（全体を収めて、背景をぼかした同じ映像で埋める）
   - `focus_x`／`focus_y`：`fill` で切り出す位置（0＝左・上、0.5＝中央、1＝右・下）。横の素材を縦型にするときの寄せ先
   - `speed`：再生速度（2＝倍速、0.5＝スロー）。音声も同じ速度で、音程は保つ
+  - `interp`：フレームが足りないときの補い方。`none`（既定。コマを繰り返す）／`blend`（前後のコマを混ぜる）／`motion`（動きを推定して中間のコマを作る。なめらかだが、細かい模様や重なる動きで崩れることがあるので必ずフレームで確認する）。スロー再生や 24/25fps 素材を 30fps にするとき、足りなければ edit.py が注意を出す
+  - `stabilize`：手ブレ補正（vidstab の2パス）。`true` か `{"shakiness": 6, "smoothing": 20, "zoom": 0}`。`zoom` 0 は黒い縁が出ない最小の拡大を自動で選ぶ。テストでは、フレーム間の揺れの平均が 18.6px → 2.6px になった
   - `volume`：素材の音の大きさ（0で無音）
-  - `vf`：このクリップだけにかける追加フィルタ
+  - `denoise`：素材の音のノイズ除去（`true` か強さの数値。既定12dB）。`highpass`：低音カットの周波数（風切り音対策に 80〜120）
+  - `vf`：このクリップだけにかける追加フィルタ（画面サイズに合わせた後、グレーディングの前）
   - `transition`：**次のクリップへの**つなぎ。`type` は `cut`（既定）か ffmpeg xfade の種類（`fade`、`fadeblack`、`fadewhite`、`dissolve`、`slideleft`、`wipeleft`、`zoomin`、`smoothleft` など）、`dur` は秒
-  - `tonemap`：HDR素材を自動でSDRに変換する（既定 true）
-- `audio`：ナレーションやBGMなど外部の音声。`start` は完成版の何秒目から鳴らすか。`in`／`out` で素材の使う区間
+- `audio`：ナレーションやBGMなど外部の音声。`start` は完成版の何秒目から鳴らすか。`in`／`out` で素材の使う区間。`denoise`・`highpass` も使える
 - `clip_audio`：false にすると素材の音をすべて使わない
 - `chunk_max`：チャンク1本の最長秒数（既定20）
+
+## 画質と音質の設定（品質の方針に基づく既定値）
+
+- 中間ファイル：**10bit 4:4:4 の可逆圧縮**（x264 lossless）。最終のエンコード以外で画質が落ちる工程はない
+- 色の処理：縮小は lanczos（精度優先のフラグ付き）、グレーディングは RGB 16bit、色空間は BT.709 に明示的に変換してタグも付ける（素材が BT.601 の場合も変換する）
+- 10bit → 8bit は誤差拡散ディザ（空などのグラデーションに段差を出さない）
+- マスター：libx264 `veryslow`、crf 12、aq-mode 3（暗部の段差を抑える）、音声 AAC 320k
+- 投稿用（軽量版）：crf 17、maxrate 24M、音声 AAC 256k
+- 写真：EXIFの向きを反映する。HEICは `pip install pillow-heif` があれば読める
+- 音声：リサンプルは soxr（高精度）、内部は 32bit float、最後に -14 LUFS へ合わせる
+
+## できないこと・注意点（実測）
+
+- GPUを使う処理（libplacebo によるHDR変換など）はこの環境では動かない（Vulkanが使えない）
+- 手ブレ補正（vidstab）は 8bit でしか動かないため、その工程だけ 8bit になる
+- `interp: "motion"` の中間フレームは、元のフレームより少し柔らかくなる（テストで確認）
+- HDR変換の方式とグレーディングの値は、テスト素材でしか確認していない。**本物の素材が届いたら compare.py で比べて決める**
+- ffmpeg 6.1 では、atempo の後ろに soxr のリサンプルを置くと処理が止まる（実測）。edit.py はリサンプル → atempo の順にしてある
+- 書き出しの時間の目安：縦型12秒・5クリップ（手ブレ補正あり）でマスター＋投稿用が約1分30秒。`interp: "motion"` は重い
 
 ## 編集の事故防止（The Next Destination の制作で実際に起きた事故から）
 
@@ -101,20 +133,22 @@ The Next Destination の確定ルール（テロップの文型・尺・投稿�
 - 音声は **48kHz WAV で組み立ててから** mux する。連結したMP3を `-c copy` で入れるとタイムスタンプが壊れ、映像の末尾が欠けた事故がある
 - `scale` を `eval=frame` で動かすようなズーム演出は、**その区間だけ別ファイルとして先にレンダリング**する（大きなフィルタグラフの中に入れると ffmpeg が落ちる）。`crop` の w/h はフレームごとに動かないので、cropでズームは作れない
 - 完成の確認は、コンテナの再生時間ではなく **`ffprobe -count_frames` のフレーム数** と **フレーム画像の目視** で行う
-- 出力は「マスター」（crf 16）と「投稿用（軽量版）」（crf 21、maxrate 14M）の2種を別名で置く
+- 出力は「マスター」と「投稿用（軽量版）」の2種を別名で置く（設定は上の「画質と音質の設定」）
 
 ## スマホ素材の注意
 
 - **回転**：縦で撮った動画は「横の映像＋回転メタデータ」で保存されていることが多い。ffmpeg は自動で回転を反映する。probe.py の表示サイズは回転後の値
 - **可変フレームレート**：スマホ動画はfpsが一定でないことがある。edit.py は下ごしらえで `fps` フィルタにより固定fpsにする
-- **HDR**（iPhoneの既定はHLG）：そのまま扱うと白っぽく色が抜ける。edit.py はHDRを検出すると zscale＋tonemap でSDRに変換する。色が意図どおりかはフレーム画像で確認し、気になる場合は `look` で整える
-- **写真の向き**：JPEGのEXIF回転は ffmpeg では反映されない。横倒しになっていたら回転させた画像を作ってから使う
+- **HDR**（iPhoneの既定はHLG）：そのまま扱うと白っぽく色が抜ける。edit.py はHDRを検出すると zscale＋tonemap でSDRに変換する。方式は compare.py で比べて決め、細かい色は `grade` で整える
+- **写真の向き**：ffmpeg はJPEGのEXIF回転を反映しないが、edit.py が反映した画像を作ってから使う
 
 ## テロップ・仕上がりの質
 
 - **安っぽい仕上がりにしない。** 安易なフォント・色・縁取り・エフェクトで質を落とさない
 - テロップの位置は、フォントの数値計算ではなく**実際に書き出したフレーム画像で測って**決める（libassの描画幅は計算より狭くなることがある）
-- 英字は Inter が入っている。日本語の質の良いフォントは環境に入っていない（IPAゴシック程度）。日本語テロップを使う案件では、使うフォントをユーザーと決め、`fonts/` に置いて使う
+- 文字の動きは telop.py のイージング付きアニメーション（`rise`・`blur`・`track`・`scale`・`chars`・`fade` の組み合わせ）を使う。等速の動き（ASSの `\move`）は安っぽく見えるので使わない
+- フォントは `get_fonts.sh` で取得したものと、環境の Inter を使う。既定の一式：日本語ゴシック（Noto Sans JP、Zen Kaku Gothic New）、日本語明朝（Noto Serif JP、Shippori Mincho）、英字（Montserrat、Playfair Display、Cormorant Garamond、DM Serif Display）。案件ごとにユーザーと決める
+- libass は `fonts/` の直下しか探さない。サブフォルダに入れると代替フォントで描画される（実測。edit.py はこの置き換えを検出して止まる）
 
 ## 素材の受け取り（Google Drive）
 

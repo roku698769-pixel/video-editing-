@@ -6,3 +6,5 @@ output/*.mov
 projects/*/work/
 *.part.*
 __pycache__/
+fonts/*
+!fonts/.gitkeep

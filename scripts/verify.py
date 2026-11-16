@@ -16,6 +16,7 @@ import json
 import os
 import re
 import subprocess
+from fractions import Fraction
 
 
 def count_frames(path):
@@ -26,6 +27,17 @@ def count_frames(path):
     j = json.loads(r.stdout)
     s = j["streams"][0]
     return int(s["nb_read_frames"]), s["width"], s["height"], float(j["format"]["duration"])
+
+
+def color_info(path):
+    r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+                        "stream=profile,pix_fmt,color_space,color_primaries,color_transfer,color_range",
+                        "-of", "json", path], capture_output=True, text=True, check=True)
+    s = json.loads(r.stdout)["streams"][0]
+    tags = [s.get(k, "?") for k in ("color_space", "color_primaries", "color_transfer")]
+    ok = tags == ["bt709"] * 3 and s.get("color_range") == "tv" and s.get("pix_fmt") == "yuv420p"
+    return (f"{s.get('profile')} {s.get('pix_fmt')} 色空間 {'/'.join(tags)} {s.get('color_range')}"
+            f"{'' if ok else ' ★想定（yuv420p・bt709・tv）と違う'}")
 
 
 def loudness(path):
@@ -50,7 +62,7 @@ def silences(path):
 def grab(path, frame, fps, out):
     """frame 番目の画像を書き出す。末尾付近でも確実に取れるよう、
     少し手前へシークしてからフレーム番号で選ぶ"""
-    k0 = max(0, frame - fps)
+    k0 = max(0, frame - int(round(fps)))
     subprocess.run(["ffmpeg", "-y", "-hide_banner", "-loglevel", "error",
                     "-ss", f"{k0 / fps:.6f}", "-i", path,
                     "-vf", f"select=gte(n\\,{frame - k0})", "-frames:v", "1",
@@ -66,7 +78,7 @@ def main():
     ap.add_argument("--silence", action="store_true")
     a = ap.parse_args()
     m = json.load(open(a.manifest))
-    fps, total = m["fps"], m["total_frames"]
+    fps, total = float(Fraction(str(m["fps"]))), m["total_frames"]
     work = os.path.dirname(os.path.abspath(a.manifest))
 
     marks = {0: "冒頭", total - 1: "末尾"}
@@ -88,6 +100,7 @@ def main():
         print(f"[{mode}] {path}")
         print(f"  フレーム数 {n}（設計 {total}）{'一致' if ok else '★不一致'}  {w}x{h}  "
               f"コンテナ尺 {dur:.3f}秒")
+        print(f"  {color_info(path)}")
         lu, pk = loudness(path)
         print(f"  音量 {lu} LUFS／トゥルーピーク {pk} dBFS")
         if a.silence:

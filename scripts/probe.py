@@ -70,6 +70,8 @@ def info(path):
             "hdr": HDR_TRC.get(v.get("color_transfer", ""), ""),
             "color_transfer": v.get("color_transfer", ""),
             "color_primaries": v.get("color_primaries", ""),
+            "colorspace": v.get("color_space", ""),
+            "color_range": v.get("color_range", ""),
         })
     if aus:
         a = aus[0]
@@ -109,6 +111,8 @@ def main(args):
             parts.append(f"{d['codec']}/{d['pix_fmt']}")
             if d["hdr"]:
                 parts.append(d["hdr"])
+            if d["pix_fmt"] and ("10" in d["pix_fmt"] or "12" in d["pix_fmt"]):
+                parts.append("10bit以上")
         if d["has_audio"]:
             parts.append(f"音声 {d['a_codec']} {d['a_rate']}Hz {d['a_ch']}ch")
         else:
