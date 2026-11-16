@@ -1,0 +1,8 @@
+# 素材・動画・作業ファイルはGitに入れない
+footage/*
+!footage/.gitkeep
+output/*.mp4
+output/*.mov
+projects/*/work/
+*.part.*
+__pycache__/
