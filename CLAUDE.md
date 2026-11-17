@@ -24,6 +24,7 @@ The Next Destination の確定ルール（テロップの文型・尺・投稿�
 - 現時点で接続されていて、編集に使えそうなもの（未使用・未検証）：Adobe for creativity（音声の明瞭化 `media_enhance_speech`、画像の補正・背景除去、動画のリサイズなど）、Higgsfield AI（動画・画像の高解像度化 `upscale_video`／`upscale_image` など。クレジット消費あり）、Canva
 - Descript（接続済み・接続確認済み）：文字起こし（`transcribe_audio_video`、SRT字幕の書き出し）、AI編集エージェント（Agent Underlord。フィラー除去、Studio Soundによる音声の明瞭化など）、ショートの切り出し（`create_social_clips`）、書き出し（`publish_project`、最大4K）、他の編集ソフト向けタイムラインの書き出し。素材はURL（Driveリンク可）か直接アップロードで取り込む。効果は ffmpeg の処理と比べてから使う
 - 有料のクレジットを使う処理は、使う前に見込みの消費量をユーザーに伝える
+- 編集中に、接続済みのコネクターやスクリプトでは足りない機能が出てきたら、追加すべきコネクターを探してユーザーに提案する（ユーザーの指示）。追加は不要と判断した候補（2026-11時点）：OpusClip（Descriptで足りなければ）、Shutterstock（検索のみで素材は使えない）、ElevenLabs（音声エージェント管理用でナレーション生成には使えない）
 
 ## セッション開始時の準備
 
