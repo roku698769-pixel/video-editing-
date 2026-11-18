@@ -8,3 +8,6 @@ projects/*/work/
 __pycache__/
 fonts/*
 !fonts/.gitkeep
+
+# Remotion
+node_modules/
