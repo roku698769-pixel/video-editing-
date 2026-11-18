@@ -26,6 +26,20 @@ The Next Destination の確定ルール（テロップの文型・尺・投稿�
 - 有料のクレジットを使う処理は、使う前に見込みの消費量をユーザーに伝える
 - 編集中に、接続済みのコネクターやスクリプトでは足りない機能が出てきたら、追加すべきコネクターを探してユーザーに提案する（ユーザーの指示）。追加は不要と判断した候補（2026-11時点）：OpusClip（Descriptで足りなければ）、Shutterstock（検索のみで素材は使えない）、ElevenLabs（音声エージェント管理用でナレーション生成には使えない）
 
+## Remotion（ユーザーの許可）
+
+- テロップやモーショングラフィックスを作るために Remotion を使ってよい（2026-11 ユーザーが許可）
+- 役割：**重ねる素材（透明背景）を作る道具**として使う。撮影素材の読み込み・色の処理・最終の書き出しは従来どおり edit.py（ffmpeg）で行い、Remotion の出力をその上に重ねる
+  - 理由：撮影素材を Remotion に通すとブラウザで映像を読み込むため、10bit や HDR の情報が失われるおそれがある（未検証）。また Remotion の通常の MP4 は色の範囲がフル（yuvj420p）で書き出され、このリポジトリの設定とそろわない（実測）
+- 書き出しの設定（実測で動作確認済み）：
+  - ブラウザは環境のものを指定する：`--browser-executable=$(ls /opt/pw-browsers/chromium_headless_shell-*/*/chrome-headless-shell)`
+  - 透明背景：`--codec=prores --prores-profile=4444 --pixel-format=yuva444p10le --image-format=png`（出力は yuva444p12le の ProRes）
+  - テスト：1080×1920・60フレームの書き出しに約18秒。ffmpeg の overlay で重ねたフレームを目視し、正しく重なることを確認した
+- フォント：何も指定しないと IPAゴシックなどの代替フォントで描画される（実測）。`fonts/` のフォントを `@font-face`（`staticFile` など）で読み込み、書き出したフレームで書体を確認する
+- 文字の動きはイージング付き（`interpolate` の `easing`、`spring`）にする。テロップの品質の方針（下記「テロップ・仕上がりの質」）は Remotion でも同じ
+- パッケージ：`remotion`・`@remotion/cli` など 4.x と `react@18.3.1`・`react-dom@18.3.1` を npm で入れる（2026-11 時点で 4.0.544 を確認）。`node_modules` は Git に入れない
+- ライセンス：個人と従業員3人以下の会社は無料。それより大きな組織で使う場合は有料の会社向けライセンスが必要
+
 ## セッション開始時の準備
 
 1. `ffmpeg`、`ffprobe`、`python3` が使えるか確認する
