@@ -3,6 +3,7 @@ footage/*
 !footage/.gitkeep
 output/*.mp4
 output/*.mov
+output/*.wav
 projects/*/work/
 *.part.*
 __pycache__/
