@@ -1,0 +1,102 @@
+{
+  "version": 3,
+  "skills": {
+    "figma": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/heygen-com/hyperframes.git",
+      "ref": "v0.9.71",
+      "skillPath": "skills/figma/SKILL.md",
+      "skillFolderHash": "d0a4a7e31d093a150fa3f1f8d6795a8da59371c000edaec4f5cbc92ae3ef25a1",
+      "installedAt": "2026-11-20T03:38:09.227Z",
+      "updatedAt": "2026-11-20T03:38:09.227Z"
+    },
+    "hyperframes": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/heygen-com/hyperframes.git",
+      "ref": "v0.9.71",
+      "skillPath": "skills/hyperframes/SKILL.md",
+      "skillFolderHash": "ae5c337906c4560efcb5da1b4cb04dc618c1936b3ea04afecbd2d3067ec8abfd",
+      "pluginName": "core-skills",
+      "installedAt": "2026-11-20T03:38:09.242Z",
+      "updatedAt": "2026-11-20T03:38:09.242Z"
+    },
+    "hyperframes-cli": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/heygen-com/hyperframes.git",
+      "ref": "v0.9.71",
+      "skillPath": "skills/hyperframes-cli/SKILL.md",
+      "skillFolderHash": "d0fc5a7e080424f5d131c8a2f7e4802ebafe32ca1eb76e6671e6ca43b879752d",
+      "pluginName": "core-skills",
+      "installedAt": "2026-11-20T03:38:09.244Z",
+      "updatedAt": "2026-11-20T03:38:09.244Z"
+    },
+    "hyperframes-registry": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/heygen-com/hyperframes.git",
+      "ref": "v0.9.71",
+      "skillPath": "skills/hyperframes-registry/SKILL.md",
+      "skillFolderHash": "8f7dd3f5b4c066dfc9f0ac37587b7fbb419d7bd7428fc85aa0afa0426af7826f",
+      "pluginName": "core-skills",
+      "installedAt": "2026-11-20T03:38:09.246Z",
+      "updatedAt": "2026-11-20T03:38:09.246Z"
+    },
+    "media-use": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/heygen-com/hyperframes.git",
+      "ref": "v0.9.71",
+      "skillPath": "skills/media-use/SKILL.md",
+      "skillFolderHash": "8d82f4a32f23312df081b6f23abe6d75ae9834a227ccfc1371851df642172751",
+      "pluginName": "core-skills",
+      "installedAt": "2026-11-20T03:38:09.269Z",
+      "updatedAt": "2026-11-20T03:38:09.269Z"
+    },
+    "remotion-to-hyperframes": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/heygen-com/hyperframes.git",
+      "ref": "v0.9.71",
+      "skillPath": "skills/remotion-to-hyperframes/SKILL.md",
+      "skillFolderHash": "041e9b2dfa7a95f3274201847d59462eb9dbda93e335fda1c47d44c2a37e9b46",
+      "installedAt": "2026-11-20T03:38:09.277Z",
+      "updatedAt": "2026-11-20T03:38:09.277Z"
+    },
+    "reverse-any-video": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/heygen-com/hyperframes.git",
+      "ref": "v0.9.71",
+      "skillPath": "skills/reverse-any-video/SKILL.md",
+      "skillFolderHash": "6380081d13789179dec122989ee55a20644566105fdb87dd77a5a58027422527",
+      "pluginName": "core-skills",
+      "installedAt": "2026-11-20T03:38:09.278Z",
+      "updatedAt": "2026-11-20T03:38:09.278Z"
+    },
+    "slideshow": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/heygen-com/hyperframes.git",
+      "ref": "v0.9.71",
+      "skillPath": "skills/slideshow/SKILL.md",
+      "skillFolderHash": "39e027bbe99088cb41e35f502060b3cff74a9927eb2040c2c3077ea0f52215cd",
+      "installedAt": "2026-11-20T03:38:09.278Z",
+      "updatedAt": "2026-11-20T03:38:09.278Z"
+    },
+    "style-sampling": {
+      "source": "heygen-com/hyperframes",
+      "sourceType": "github",
+      "sourceUrl": "https://github.com/heygen-com/hyperframes.git",
+      "ref": "v0.9.71",
+      "skillPath": "skills/style-sampling/SKILL.md",
+      "skillFolderHash": "90d04cf36c64206b3e000b470ed62ed75f4030a3d14b695012ffe3f3ad767246",
+      "pluginName": "core-skills",
+      "installedAt": "2026-11-20T03:38:09.279Z",
+      "updatedAt": "2026-11-20T03:38:09.279Z"
+    }
+  },
+  "dismissed": {}
+}

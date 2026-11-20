@@ -85,10 +85,20 @@ FFmpeg・yt-dlp・Whisper・Remotion・HyperFrames を編集の道具として�
   - ffmpeg の overlay で重ねたフレームを目視し、透明部分が正しく抜けることを確認した
   - 書き出し前の確認：`npx hyperframes check`（構文・実行時エラー・レイアウト）
 - GSAP は既定で CDN（jsdelivr）から読み込む。この環境から読み込めた
-- **利用状況の送信（テレメトリ）は既定で有効**のため、setup_tools.sh で無効にしている（`npx hyperframes telemetry disable`）
+- **利用状況の送信（テレメトリ）は既定で有効**のため、setup_tools.sh で無効にしている（`npx hyperframes telemetry disable`）。この設定は `~/.hyperframes/config.json` に書かれ、下記のスキルの media-use の送信もこれで止まる（スクリプトで確認）。コンテナが新しくなると消えるため、HyperFrames を使う前に必ず setup_tools.sh を実行する
 - 使わない機能：`publish`・`share`・`cloud`（素材を外部へアップロードする）、`lambda`・`cloudrun`。使う必要が出たら、何を送るかをユーザーに伝えて許可を得る
 - HyperFrames 自身の文字起こし（whisper-cpp）・読み上げ（Kokoro）・BGM 生成は入れていない。文字起こしは transcribe.py を使う
-- AI 向けの説明集（`npx hyperframes skills`）は入れていない（使うときはユーザーに確認する）
+
+### HyperFrames のスキル（2026-11-20 ユーザーの指示で導入）
+
+- `npx hyperframes skills` で公開されている全9本を入れ、リポジトリの `.claude/skills/` に置いた（v0.9.71、本体と同じ版。入手元と版の記録は `.claude/skills/hyperframes-skill-lock.json`）。このリポジトリでセッションを始めると読み込まれる
+  - `hyperframes`（最初に読む。書き出しの決まりと作業の流れ）、`hyperframes-cli`（CLI の使い方）、`hyperframes-registry`（約450の既製の部品：トランジション、タイトル、字幕、図表など）、`media-use`（音楽・効果音・画像・読み上げ・切り抜き・色の扱い）、`remotion-to-hyperframes`（Remotion などで作ったものの移植）、`reverse-any-video`（既存の動画を HyperFrames で作り直す）、`style-sampling`（決まった型での作成）、`slideshow`（発表用スライド）、`figma`（Figma の取り込み）
+- スキルは CLI を `node .claude/skills/hyperframes/scripts/plugin-cli.mjs <コマンド>` で呼ぶ。この呼び方は**既定で npm の最新版**を使うため、版をそろえるために次の2つを付けて実行する（ひな形での `check` で動作確認済み）：
+  - `HYPERFRAMES_STANDALONE_CLI_VERSION=0.9.71`（motion/package.json と同じ版に固定）
+  - `HYPERFRAMES_BROWSER_PATH=$(ls /opt/pw-browsers/chromium_headless_shell-*/*/chrome-headless-shell)`（上記の速い書き出し）
+- **このファイルの方針がスキルより優先する**：HyperFrames は透明背景の重ね素材を作る道具として使い、撮影素材の色の処理と最終の書き出しは edit.py で行う。スキルの中の、外部へアップロードする機能（`publish`・`share`・`cloud` など）と、HeyGen・Gemini などの有料・外部のサービス（API キーが必要。いずれも未設定）は、ユーザーの許可なく使わない
+- スキルの中のスクリプト（106本）は、送信先を確認した：利用状況の送信（上記の設定で停止）、HeyGen・Gemini・OpenAI・Groq の API（キーがないと動かない）、フォントや部品の取得（Google Fonts、jsdelivr、GitHub）、素材検索（Openverse、Freesound、Pixabay）
+- スキルを更新するときは `npx hyperframes skills update` を motion/ の版の更新と同時に行い、`.claude/skills/` に写し直す（ホームに入るため、そのままではセッション終了で消える）
 
 ## セッション開始時の準備
 
