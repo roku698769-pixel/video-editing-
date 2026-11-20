@@ -6,7 +6,7 @@
   "contrast": 0.1,
   "saturation": 1.03,
   "vibrance": 0.1,
-  "sharpen": 0.15
+  "sharpen": 0.0
  },
  "loudness": {
   "i": -14,
@@ -20,14 +20,14 @@
  ],
  "clips": [
   {
-   "src": "footage/upload1/source.MP4",
+   "src": "footage/upload1/sr.mkv",
    "in": 0.0,
    "out": 12.8,
    "volume": 0,
    "vf": "gblur=sigma=28,eq=brightness=-0.06:saturation=0.85"
   },
   {
-   "src": "footage/upload1/source.MP4",
+   "src": "footage/upload1/sr.mkv",
    "in": 0.0,
    "out": 25.33,
    "volume": 2.0,
@@ -35,7 +35,7 @@
    "highpass": 90
   },
   {
-   "src": "footage/upload1/source.MP4",
+   "src": "footage/upload1/sr.mkv",
    "in": 3.0,
    "out": 5.7,
    "speed": 0.4,
@@ -44,7 +44,7 @@
    "vf": "crop=675:1200:150:180,scale=1080:1920:flags=lanczos+accurate_rnd+full_chroma_int"
   },
   {
-   "src": "footage/upload1/source.MP4",
+   "src": "footage/upload1/sr.mkv",
    "in": 13.95,
    "out": 14.52,
    "speed": 0.3,
@@ -53,13 +53,13 @@
    "vf": "crop=900:1600:0:100,scale=1080:1920:flags=lanczos+accurate_rnd+full_chroma_int"
   },
   {
-   "src": "projects/upload1/work/src_png/f0435.png",
+   "src": "projects/upload1/work/sr_png/f0435.png",
    "dur": 2.25,
    "fit": "fill",
    "vf": "crop=900:1600:0:100,scale=1080:1920:flags=lanczos+accurate_rnd+full_chroma_int"
   },
   {
-   "src": "footage/upload1/source.MP4",
+   "src": "footage/upload1/sr.mkv",
    "in": 15.4,
    "out": 15.8,
    "speed": 0.25,
@@ -68,13 +68,13 @@
    "vf": "crop=900:1600:180:100,scale=1080:1920:flags=lanczos+accurate_rnd+full_chroma_int"
   },
   {
-   "src": "projects/upload1/work/src_png/f0474.png",
+   "src": "projects/upload1/work/sr_png/f0474.png",
    "dur": 2.1,
    "fit": "fill",
    "vf": "crop=900:1600:180:100,scale=1080:1920:flags=lanczos+accurate_rnd+full_chroma_int"
   },
   {
-   "src": "footage/upload1/source.MP4",
+   "src": "footage/upload1/sr.mkv",
    "in": 18.8,
    "out": 25.33,
    "volume": 1.0,
@@ -82,7 +82,7 @@
    "highpass": 90
   },
   {
-   "src": "projects/upload1/work/src_png/f0758.png",
+   "src": "projects/upload1/work/sr_png/f0758.png",
    "dur": 0.9,
    "fit": "fill",
    "vf": "null"
