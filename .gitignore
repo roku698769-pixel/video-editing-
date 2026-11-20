@@ -11,3 +11,9 @@ fonts/*
 
 # Remotion
 node_modules/
+
+# Whisper のモデル・Remotion／HyperFrames の書き出し
+models/
+motion/out/
+motion/**/renders/
+motion/**/.hyperframes/

@@ -1,0 +1,10 @@
+{
+  "name": "hyperframes-template",
+  "private": true,
+  "type": "module",
+  "description": "HyperFrames の重ね素材のひな形（透明背景・1080x1920・2秒）。案件ごとにフォルダごと複製して使う",
+  "scripts": {
+    "check": "hyperframes check",
+    "render": "hyperframes render --format mov --fps 30"
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "name": "video-editing-motion",
+  "private": true,
+  "description": "重ね素材（テロップ・モーショングラフィックス）を作る道具：Remotion と HyperFrames",
+  "scripts": {
+    "remotion": "remotion",
+    "hyperframes": "hyperframes"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.545",
+    "hyperframes": "0.9.71",
+    "react": "18.3.1",
+    "react-dom": "18.3.1",
+    "remotion": "4.0.545"
+  }
+}
