@@ -1,0 +1,14 @@
+{
+  "name": "upload1_news",
+  "format": "vertical",
+  "fps": "30000/1001",
+  "grade": {"contrast": 0.1, "saturation": 1.03, "vibrance": 0.1, "sharpen": 0.15},
+  "loudness": {"i": -14, "tp": -1.0},
+  "overlays": [{"src": "projects/upload1/work/overlay.mov", "start": 0}],
+  "clips": [
+    {"src": "footage/upload1/source.MP4", "in": 0, "volume": 2.0, "denoise": 10, "highpass": 90}
+  ],
+  "audio": [
+    {"src": "footage/upload1/bgm_news_duck.wav", "start": 0, "volume_db": -18}
+  ]
+}

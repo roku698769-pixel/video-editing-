@@ -291,6 +291,7 @@ class Cfg:
         self.grade = j.get("grade") or {}
         self.tonemap = j.get("tonemap", {"method": "hable", "npl": 100})
         self.subs = j.get("subtitles")
+        self.overlays = j.get("overlays", [])
         self.fontsdir = j.get("fontsdir", "fonts")
         self.chunk_max = float(j.get("chunk_max", 20))
         self.clip_audio = j.get("clip_audio", True)
@@ -446,6 +447,33 @@ def sub_filter(cfg, offset_frames):
             f"setpts=PTS-STARTPTS")
 
 
+def overlay_filter(cfg, offset_frames, nframes, first_input):
+    """透明背景の重ね素材（Remotion・HyperFrames の ProRes 4444 など）を重ねる。
+    overlays: [{"src": "...mov", "start": 秒}]。素材は sRGB の RGBA として読み、BT.709 の 10bit 4:4:4 にして重ねる"""
+    if not cfg.overlays:
+        return "", []
+    F = cfg.fps
+    srcs, cur = [], "ovb0"
+    chain = ""
+    for n, ov in enumerate(cfg.overlays):
+        idx = first_input + n
+        st = int(round(float(ov.get("start", 0)) * float(F)))
+        a = offset_frames - st
+        lab = f"ov{n}"
+        # 素材の fps を完成版の fps に合わせ、先頭の空き（start）を透明で埋め、このチャンクの区間を切り出す
+        chain += (f";[{idx}:v]format=rgba,fps={F},setpts=PTS-STARTPTS"
+                  + (f",tpad=start={-a}:color=0x00000000" if a < 0 else "")
+                  + f",trim=start_frame={max(a, 0)}:end_frame={max(a, 0) + nframes},setpts=PTS-STARTPTS,"
+                  f"scale={cfg.W}:{cfg.H}:flags=lanczos+accurate_rnd+full_chroma_int"
+                  f":in_range=full:out_color_matrix=bt709:out_range=tv,format=yuva444p10le[{lab}]")
+        nxt = f"ovb{n + 1}"
+        chain += f";[{cur}][{lab}]overlay=format=yuv444p10:eof_action=pass:alpha=straight[{nxt}]"
+        cur = nxt
+        srcs.append(ov["src"])
+    # 呼び出し側の直鎖を [ovb0] で受け、最後のラベルから続ける
+    return f"[ovb0]{chain};[{cur}]null", srcs
+
+
 def timescale(F):
     return F.numerator * (512 if F.denominator == 1 else 1)
 
@@ -480,10 +508,11 @@ def build_chunks(cfg, clips, preps, mode):
         while s < b:
             e = min(b, s + step)
             out = os.path.join(cdir, f"{len(files):03d}_clip{clip.i:02d}_{s}-{e}.mp4")
+            ovf, ovs = overlay_filter(cfg, pos, e - s, 1)
             fc = (f"[0:v]trim=start_frame={s}:end_frame={e},setpts=PTS-STARTPTS"
-                  + sub_filter(cfg, pos))
+                  + sub_filter(cfg, pos) + ovf)
             print(f"[チャンク {mode}] クリップ{clip.i} 本体 {s}〜{e}")
-            encode_chunk(cfg, mode, [preps[k]], fc, e - s, out)
+            encode_chunk(cfg, mode, [preps[k]] + ovs, fc, e - s, out)
             files.append(out)
             pos += e - s
             s = e
@@ -495,8 +524,10 @@ def build_chunks(cfg, clips, preps, mode):
                   f"[1:v]trim=start_frame=0:end_frame={d},setpts=PTS-STARTPTS[b];"
                   f"[a][b]xfade=transition={clip.tr_type}:duration={d / float(cfg.fps):.6f}:offset=0"
                   + sub_filter(cfg, pos))
+            ovf, ovs = overlay_filter(cfg, pos, d, 2)
+            fc += ovf
             print(f"[チャンク {mode}] トランジション {clip.tr_type} {d}フレーム")
-            encode_chunk(cfg, mode, [preps[k], preps[k + 1]], fc, d, out)
+            encode_chunk(cfg, mode, [preps[k], preps[k + 1]] + ovs, fc, d, out)
             files.append(out)
             pos += d
     return files, pos

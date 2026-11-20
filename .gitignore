@@ -17,3 +17,6 @@ models/
 motion/out/
 motion/**/renders/
 motion/**/.hyperframes/
+
+# HyperFrames の案件フォルダにコピーしたフォント（get_fonts.sh で取得できる）
+motion/**/assets/fonts/
