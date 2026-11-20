@@ -1,0 +1,336 @@
+#!/usr/bin/env python3
+"""projects/upload1/work/timeline.json のタイミングから index.html を作る。
+使い方: python3 motion/upload1_news/make.py
+"""
+import json, os
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+ROOT = os.path.dirname(os.path.dirname(HERE))
+tl = json.load(open(os.path.join(ROOT, "projects/upload1/work/timeline.json")))
+TOTAL = round(tl["total"], 4)
+
+TICKER_ONE = ('<span class="sq">■</span>教室でガムの奪い合い　ガムは床に落下<span class="gap"></span>'
+              '<span class="sq">■</span>教室内の天気　晴れのち混戦<span class="gap"></span>'
+              '<span class="sq">■</span>専門家「いつものことです」<span class="gap"></span>'
+              '<span class="sq">■</span>この映像は視聴者から提供されました<span class="gap"></span>')
+
+html = r"""<!doctype html>
+<html lang="ja" data-resolution="portrait">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=1080, height=1920" />
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
+    <style>
+      @font-face { font-family: "ZKG"; font-weight: 900; src: url("assets/fonts/ZenKakuGothicNew_900Black.ttf"); }
+      @font-face { font-family: "ZKG"; font-weight: 700; src: url("assets/fonts/ZenKakuGothicNew_700Bold.ttf"); }
+      @font-face { font-family: "ZKG"; font-weight: 500; src: url("assets/fonts/ZenKakuGothicNew_500Medium.ttf"); }
+      @font-face { font-family: "MS"; font-weight: 800; src: url("assets/fonts/Montserrat_800ExtraBold.ttf"); }
+      @font-face { font-family: "MS"; font-weight: 700; src: url("assets/fonts/Montserrat_700Bold.ttf"); }
+      :root { --navy: #0c2242; --navy2: #173a6a; --red: #c8102e; --red2: #e0243f; --ink: #0c1a2e; --gold: #ffcf1a; }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      html, body { width: 1080px; height: 1920px; overflow: hidden; background: transparent; }
+      #root { position: relative; width: 1080px; height: 1920px; font-family: "ZKG", sans-serif; font-feature-settings: "palt" 1; }
+      .abs { position: absolute; }
+
+      /* 上部 */
+      #bug { left: 64px; top: 112px; }
+      #bugIn { display: flex; height: 78px; box-shadow: 0 6px 18px rgba(0,0,0,.28); }
+      #bugMark { width: 16px; background: var(--red); }
+      #bugBox { background: linear-gradient(180deg, #13305a 0%, var(--navy) 100%); display: flex; align-items: center; gap: 14px; padding: 0 26px 0 22px; }
+      #bugJa { color: #fff; font-weight: 900; font-size: 38px; letter-spacing: .02em; }
+      #bugEn { color: #fff; font-family: "MS"; font-weight: 800; font-size: 30px; letter-spacing: .14em; padding-left: 14px; border-left: 2px solid rgba(255,255,255,.35); line-height: 1; }
+      #src { left: 64px; top: 204px; }
+      #srcIn { background: rgba(8,20,40,.62); color: #fff; font-weight: 700; font-size: 28px; padding: 8px 16px; letter-spacing: .06em; }
+      #badge { right: 64px; top: 112px; }
+      #badgeIn { display: flex; flex-direction: column; align-items: flex-end; gap: 10px; }
+      .pill { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 22px 0 18px; box-shadow: 0 6px 18px rgba(0,0,0,.28); }
+      #livePill { background: var(--red); }
+      #replayPill { background: var(--navy); position: absolute; right: 0; top: 0; border-left: 8px solid var(--gold); }
+      #pillWrap { position: relative; height: 56px; }
+      #liveDot { width: 16px; height: 16px; border-radius: 50%; background: #fff; }
+      .pillTxt { color: #fff; font-family: "MS"; font-weight: 800; font-size: 30px; letter-spacing: .12em; }
+      #replayIcon { width: 0; height: 0; border-left: 18px solid var(--gold); border-top: 11px solid transparent; border-bottom: 11px solid transparent; }
+      #timeBox { position: relative; height: 42px; }
+      #liveTime, #slowTxt { position: absolute; right: 0; top: 0; white-space: nowrap; background: rgba(8,20,40,.62); color: #fff; font-weight: 700; font-size: 28px; letter-spacing: .06em; padding: 5px 14px; }
+      #liveTime { font-family: "MS"; }
+
+      /* ① 見出し画面 */
+      #op { left: 0; top: 0; width: 1080px; height: 1920px; }
+      #opInset { position: absolute; left: 80px; top: 360px; width: 920px; height: 646px; background: #fff; padding: 10px;
+        box-shadow: 0 18px 50px rgba(0,0,0,.45); }
+      #opInset img { display: block; width: 900px; height: 626px; object-fit: cover; }
+      #opInsetLabel { position: absolute; left: 10px; top: 10px; background: rgba(8,20,40,.78); color: #fff; font-weight: 700; font-size: 28px; padding: 6px 14px; letter-spacing: .06em; }
+      #opHead { position: absolute; left: 60px; top: 1100px; width: 960px; }
+      #opTab { display: inline-flex; align-items: center; height: 72px; padding: 0 34px; background: linear-gradient(180deg, var(--red2), var(--red)); }
+      #opTab span { color: #fff; font-weight: 900; font-size: 44px; letter-spacing: .18em; }
+      #opBox { position: relative; background: linear-gradient(180deg, #fff 0%, #eef1f5 100%); padding: 30px 40px 34px 50px; box-shadow: 0 10px 28px rgba(0,0,0,.35); overflow: hidden; }
+      #opBox::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 14px; background: var(--navy); }
+      .opL1 { display: block; color: var(--ink); font-weight: 900; font-size: 58px; line-height: 74px; white-space: nowrap; }
+      .opL2 { display: block; color: var(--ink); font-weight: 900; font-size: 80px; line-height: 96px; white-space: nowrap; }
+      #opSub { background: linear-gradient(90deg, var(--navy), var(--navy2)); color: #fff; font-weight: 700; font-size: 38px; height: 84px; display: flex; align-items: center; padding-left: 50px; letter-spacing: .04em; overflow: hidden; }
+
+      /* 下のテロップ（②〜④） */
+      #lt { left: 60px; top: 1292px; width: 960px; }
+      #tab { position: relative; display: inline-flex; align-items: center; height: 66px; padding: 0 30px; background: linear-gradient(180deg, var(--red2), var(--red)); }
+      #tabMask { position: relative; height: 42px; width: 150px; overflow: hidden; }
+      .tabTxt { position: absolute; left: 0; top: 0; color: #fff; font-weight: 900; font-size: 40px; letter-spacing: .16em; line-height: 42px; white-space: nowrap; }
+      #hbox { position: relative; width: 960px; height: 228px; overflow: hidden; background: linear-gradient(180deg, #fff 0%, #eef1f5 100%); box-shadow: 0 10px 28px rgba(0,0,0,.30); }
+      #hbox::before { content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 14px; background: var(--navy); }
+      .head { position: absolute; left: 50px; top: 26px; right: 30px; }
+      .hl { display: block; color: var(--ink); font-weight: 900; font-size: 74px; line-height: 88px; letter-spacing: .01em; white-space: nowrap; }
+      .em { color: var(--red); }
+      #sub { position: relative; width: 960px; height: 76px; overflow: hidden; background: linear-gradient(90deg, var(--navy), var(--navy2)); }
+      .st { position: absolute; left: 50px; top: 0; height: 76px; display: flex; align-items: center; color: #fff; font-weight: 700; font-size: 36px; letter-spacing: .04em; white-space: nowrap; }
+
+      /* 速報の導入 */
+      #flash { left: 0; top: 760px; width: 1080px; height: 400px; }
+      #flashBar { position: absolute; left: 0; top: 60px; width: 1080px; height: 270px; background: linear-gradient(180deg, var(--red2), var(--red)); transform-origin: 0 50%; }
+      #flashTxt { position: absolute; left: 0; top: 60px; width: 1080px; height: 270px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; }
+      #flashJa { color: #fff; font-weight: 900; font-size: 150px; letter-spacing: .3em; margin-right: -.3em; line-height: 1; }
+      #flashEn { color: rgba(255,255,255,.92); font-family: "MS"; font-weight: 800; font-size: 30px; letter-spacing: .6em; margin-right: -.6em; line-height: 1; }
+      #flashLine { position: absolute; left: 0; top: 60px; width: 1080px; height: 6px; background: #fff; transform-origin: 0 50%; }
+
+      /* 区間の切り替え（画面を横切る帯） */
+      .wipe { left: 0; top: 0; width: 1080px; height: 1920px; overflow: hidden; }
+      .wA { position: absolute; left: -400px; top: -200px; width: 1700px; height: 2400px; background: var(--navy); }
+      .wB { position: absolute; left: -400px; top: -200px; width: 1700px; height: 2400px; background: var(--red); }
+      .wTxt { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; }
+      .wEn { color: #fff; font-family: "MS"; font-weight: 800; font-size: 120px; letter-spacing: .14em; margin-right: -.14em; line-height: 1; }
+      .wJa { color: var(--gold); font-weight: 900; font-size: 52px; letter-spacing: .3em; margin-right: -.3em; }
+
+      /* 丸（止め絵でガムを示す） */
+      .spot { left: 0; top: 0; width: 1080px; height: 1920px; }
+      .spotDim { position: absolute; inset: 0; }
+      .ring { position: absolute; width: 230px; height: 230px; margin-left: -115px; margin-top: -115px; }
+      .ring svg { width: 230px; height: 230px; overflow: visible; filter: drop-shadow(0 4px 10px rgba(0,0,0,.45)); }
+      .tag { position: absolute; background: var(--gold); color: var(--ink); font-weight: 900; font-size: 40px; padding: 6px 20px; letter-spacing: .1em; white-space: nowrap; box-shadow: 0 6px 16px rgba(0,0,0,.35); }
+
+      /* ティッカー */
+      #tk { left: 0; top: 1700px; width: 1080px; height: 74px; }
+      #tkIn { position: relative; width: 1080px; height: 74px; display: flex; background: rgba(8,20,40,.86); box-shadow: 0 -2px 0 var(--red) inset; }
+      #tkLabel { flex: none; width: 176px; height: 74px; display: flex; align-items: center; justify-content: center; background: var(--red); color: #fff; font-family: "MS"; font-weight: 800; font-size: 30px; letter-spacing: .14em; }
+      #tkView { position: relative; flex: 1; height: 74px; overflow: hidden; }
+      #tkTxt { position: absolute; left: 0; top: 0; height: 74px; display: flex; align-items: center; color: #fff; font-weight: 700; font-size: 34px; letter-spacing: .04em; white-space: nowrap; }
+      .sq { color: var(--red2); margin-right: 14px; }
+      .gap { display: inline-block; width: 90px; }
+    </style>
+  </head>
+  <body>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="__TOTAL__" data-width="1080" data-height="1920" data-layout-allow-overflow data-layout-allow-overlap>
+
+      <div id="op" class="abs clip" data-start="0" data-duration="__OPEND__" data-track-index="0">
+        <div id="opInset"><img src="assets/inset.png" alt="" /><div id="opInsetLabel">現場の映像</div></div>
+        <div id="opHead">
+          <div id="opTab"><span>速報</span></div>
+          <div id="opBox"><span class="opL1">1つのガムをめぐり</span><span class="opL2">男子学生2人が<span class="em">奪い合い</span></span></div>
+          <div id="opSub"><span id="opSubT">ガムは最終的に床へ落下</span></div>
+        </div>
+      </div>
+
+      <div id="lt" class="abs clip" data-start="__MAIN__" data-duration="__AFTERMAIN__" data-track-index="1">
+        <div id="tab"><div id="tabMask">
+          <span id="tabA" class="tabTxt">現場</span><span id="tabB" class="tabTxt">スロー</span><span id="tabC" class="tabTxt">続報</span>
+        </div></div>
+        <div id="hbox">
+          <div id="h1" class="head"><span class="hl">教室の窓際で</span><span class="hl">ガムの<span class="em">奪い合い</span></span></div>
+          <div id="h2" class="head"><span class="hl">紺色のシャツの学生が</span><span class="hl">ガムを<span class="em">奪い取る</span></span></div>
+          <div id="h3" class="head"><span class="hl">ガムはもみ合いの中で</span><span class="hl"><span class="em">床へ落下</span></span></div>
+          <div id="h4" class="head"><span class="hl">ガムを握った手を</span><span class="hl"><span class="em">高く上げて</span>守る</span></div>
+          <div id="h5" class="head"><span class="hl">紺色のシャツの学生が</span><span class="hl">ガムを<span class="em">奪い取る</span></span></div>
+          <div id="h6" class="head"><span class="hl">ガムは手を離れ</span><span class="hl"><span class="em">床へ</span></span></div>
+          <div id="h7" class="head"><span class="hl">ガムは</span><span class="hl">誰の手にも<span class="em">渡らず</span></span></div>
+        </div>
+        <div id="sub">
+          <div id="s1" class="st">ガムを持っているのは黒いシャツの学生</div>
+          <div id="s2" class="st">黒いシャツの学生は倒れたまま手を伸ばす</div>
+          <div id="s3" class="st">両者とも笑顔　けが人の情報はなし</div>
+          <div id="s4" class="st">黒いシャツの学生</div>
+          <div id="s5" class="st">相手の手元から引き抜く</div>
+          <div id="s6" class="st">もみ合いの中で落下</div>
+          <div id="s7" class="st">引き続き情報が入り次第お伝えします</div>
+        </div>
+      </div>
+
+      <div id="spot2" class="abs spot clip" data-start="__R2F__" data-duration="__R2FD__" data-track-index="2">
+        <div class="spotDim" id="dim2"></div>
+        <div class="ring" id="ring2" style="left:__C2X__px; top:__C2Y__px"><svg viewBox="0 0 230 230"><circle cx="115" cy="115" r="100" fill="none" stroke="#ffcf1a" stroke-width="10" pathLength="1" stroke-dasharray="1 1" /></svg></div>
+        <div class="tag" id="tag2" style="left:__T2X__px; top:__T2Y__px">ガム</div>
+      </div>
+      <div id="spot3" class="abs spot clip" data-start="__R3F__" data-duration="__R3FD__" data-track-index="3">
+        <div class="spotDim" id="dim3"></div>
+        <div class="ring" id="ring3" style="left:__C3X__px; top:__C3Y__px"><svg viewBox="0 0 230 230"><circle cx="115" cy="115" r="100" fill="none" stroke="#ffcf1a" stroke-width="10" pathLength="1" stroke-dasharray="1 1" /></svg></div>
+        <div class="tag" id="tag3" style="left:__T3X__px; top:__T3Y__px">ガム</div>
+      </div>
+
+      <div id="bug" class="abs clip" data-start="0" data-duration="__TOTAL__" data-track-index="4">
+        <div id="bugIn"><div id="bugMark"></div><div id="bugBox"><span id="bugJa">ほうかご</span><span id="bugEn">NEWS</span></div></div>
+      </div>
+      <div id="src" class="abs clip" data-start="__MAIN__" data-duration="__AFTERMAIN__" data-track-index="5"><div id="srcIn">視聴者提供</div></div>
+      <div id="badge" class="abs clip" data-start="0" data-duration="__TOTAL__" data-track-index="6">
+        <div id="badgeIn">
+          <div id="pillWrap">
+            <div id="livePill" class="pill"><div id="liveDot"></div><span class="pillTxt">LIVE</span></div>
+            <div id="replayPill" class="pill"><div id="replayIcon"></div><span class="pillTxt">REPLAY</span></div>
+          </div>
+          <div id="timeBox"><div id="liveTime">9.11 20:48</div><div id="slowTxt">スロー再生</div></div>
+        </div>
+      </div>
+
+      <div id="tk" class="abs clip" data-start="0" data-duration="__TOTAL__" data-track-index="7">
+        <div id="tkIn"><div id="tkLabel">NEWS</div><div id="tkView"><div id="tkTxt">__TICKER__</div></div></div>
+      </div>
+
+      <div id="flash" class="abs clip" data-start="0" data-duration="1.6" data-track-index="8">
+        <div id="flashBar"></div>
+        <div id="flashTxt"><span id="flashJa">速報</span><span id="flashEn">BREAKING</span></div>
+        <div id="flashLine"></div>
+      </div>
+
+      <div id="w1" class="abs wipe clip" data-start="__W1S__" data-duration="0.9" data-track-index="9"><div class="wB"></div><div class="wA"></div></div>
+      <div id="w2" class="abs wipe clip" data-start="__W2S__" data-duration="1.3" data-track-index="10"><div class="wB"></div><div class="wA"></div>
+        <div class="wTxt"><span class="wEn">REPLAY</span><span class="wJa">スローで詳しく</span></div></div>
+      <div id="w3" class="abs wipe clip" data-start="__W3S__" data-duration="0.9" data-track-index="11"><div class="wB"></div><div class="wA"></div></div>
+    </div>
+    <script>
+      const S = __SECTIONS__;
+      const TL = __TL__;
+      const tl = gsap.timeline({ paused: true });
+      const E3 = "power3.out";
+
+      // ---- 初期状態
+      gsap.set(["#bugIn", "#badgeIn", "#tkIn", "#srcIn"], { opacity: 0 });
+      gsap.set("#flash", { clipPath: "inset(0% 0% 0% 0%)" });
+      gsap.set(["#flashBar", "#flashLine"], { scaleX: 0 });
+      gsap.set(["#flashJa", "#flashEn"], { opacity: 0 });
+      gsap.set(["#opInset", "#opTab", "#opBox", "#opSub"], { opacity: 0 });
+      gsap.set(["#tab", "#hbox", "#sub"], { clipPath: "inset(0% 100% 0% 0%)" });
+      gsap.set(".head", { opacity: 0 });
+      gsap.set(".st", { opacity: 0 });
+      gsap.set(["#tabB", "#tabC"], { yPercent: 110 });
+      gsap.set("#replayPill", { clipPath: "inset(0% 0% 0% 100%)" });
+      gsap.set("#slowTxt", { opacity: 0 });
+      gsap.set(".wA, .wB", { xPercent: -110, skewX: -12 });
+      gsap.set(".wTxt", { opacity: 0 });
+      gsap.set(".ring circle", { strokeDashoffset: 1 });
+      gsap.set(".tag", { opacity: 0 });
+      gsap.set(".spotDim", { opacity: 0 });
+
+      // ---- ① 速報の導入と見出し画面
+      tl.to("#flashBar", { scaleX: 1, duration: 0.42, ease: "expo.out" }, 0.08);
+      tl.to("#flashLine", { scaleX: 1, duration: 0.5, ease: "expo.out" }, 0.14);
+      tl.fromTo("#flashJa", { opacity: 0, scale: 1.18, filter: "blur(10px)" }, { opacity: 1, scale: 1, filter: "blur(0px)", duration: 0.42, ease: E3 }, 0.2);
+      tl.fromTo("#flashEn", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: E3 }, 0.3);
+      tl.to("#flash", { clipPath: "inset(0% 0% 0% 100%)", duration: 0.42, ease: "power3.inOut" }, 1.05);
+      tl.fromTo("#opInset", { opacity: 0, y: 40, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 0.7, ease: E3 }, 1.15);
+      tl.fromTo("#opTab", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.5, ease: E3 }, 1.35);
+      tl.fromTo("#opBox", { opacity: 0, clipPath: "inset(0% 100% 0% 0%)" }, { opacity: 1, clipPath: "inset(0% 0% 0% 0%)", duration: 0.6, ease: "power3.inOut" }, 1.4);
+      tl.fromTo("#opBox .opL1, #opBox .opL2", { yPercent: 60, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.6, ease: E3, stagger: 0.12 }, 1.6);
+      tl.fromTo("#opSub", { opacity: 0, clipPath: "inset(0% 100% 0% 0%)" }, { opacity: 1, clipPath: "inset(0% 0% 0% 0%)", duration: 0.55, ease: "power3.inOut" }, 1.75);
+      // 止め絵をゆっくり寄せる
+      tl.fromTo("#opInset img", { scale: 1.0 }, { scale: 1.08, duration: S.main - 1.2, ease: "sine.inOut" }, 1.15);
+
+      // ---- 上部・ティッカー
+      tl.fromTo("#bugIn", { opacity: 0, x: -30 }, { opacity: 1, x: 0, duration: 0.6, ease: E3 }, 0.5);
+      tl.fromTo("#badgeIn", { opacity: 0, x: 30 }, { opacity: 1, x: 0, duration: 0.6, ease: E3 }, 0.62);
+      tl.fromTo("#tkIn", { opacity: 0, y: 24 }, { opacity: 1, y: 0, duration: 0.55, ease: E3 }, 1.45);
+      tl.fromTo("#tkTxt", { x: 904 }, { x: -(150 * (S.end - 1.6)) + 904, duration: S.end - 1.6, ease: "none" }, 1.6);  // ニュースの字幕帯の慣習で一定の速さ
+      tl.to("#liveDot", { opacity: 0.2, duration: 0.55, ease: "sine.inOut", yoyo: true, repeat: Math.floor((S.end - 1) / 0.55) - 1 }, 0.8);
+
+      // ---- 区間の切り替え（帯が横切る間に映像が切り替わる）
+      function wipe(id, cut, hold) {
+        const t0 = cut - 0.32;
+        tl.fromTo(`${id} .wB`, { xPercent: -110 }, { xPercent: 0, duration: 0.3, ease: "power3.in" }, t0);
+        tl.fromTo(`${id} .wA`, { xPercent: -110 }, { xPercent: 0, duration: 0.3, ease: "power3.in" }, t0 + 0.04);
+        tl.to(`${id} .wA`, { xPercent: 110, duration: 0.4, ease: "power3.out" }, cut + hold);
+        tl.to(`${id} .wB`, { xPercent: 110, duration: 0.4, ease: "power3.out" }, cut + hold + 0.05);
+      }
+      wipe("#w1", S.main, 0.02);
+      wipe("#w2", S.r1, 0.42);
+      tl.fromTo("#w2 .wTxt", { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 0.3, ease: E3 }, S.r1 - 0.06);
+      tl.to("#w2 .wTxt", { opacity: 0, duration: 0.2, ease: "power2.in" }, S.r1 + 0.36);
+      wipe("#w3", S.close, 0.02);
+
+      // ---- ② 本編のテロップ
+      const M0 = S.main + 0.15;
+      tl.to("#tab", { clipPath: "inset(0% 0% 0% 0%)", duration: 0.4, ease: E3 }, M0);
+      tl.to("#hbox", { clipPath: "inset(0% 0% 0% 0%)", duration: 0.55, ease: "power3.inOut" }, M0 + 0.02);
+      tl.set("#h1", { opacity: 1 }, M0);
+      tl.fromTo("#h1 .hl", { yPercent: 100, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.55, ease: E3, stagger: 0.09 }, M0 + 0.2);
+      tl.to("#sub", { clipPath: "inset(0% 0% 0% 0%)", duration: 0.5, ease: "power3.inOut" }, M0 + 0.2);
+      tl.set("#s1", { opacity: 1 }, M0 + 0.45);
+      tl.fromTo("#s1", { x: -24, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: E3 }, M0 + 0.45);
+      tl.fromTo("#srcIn", { opacity: 0, y: -10 }, { opacity: 1, y: 0, duration: 0.5, ease: E3 }, M0 + 0.3);
+
+      function swap(t, from, to, sFrom, sTo) {
+        tl.to(`${from} .hl`, { yPercent: -100, opacity: 0, duration: 0.3, ease: "power2.in", stagger: 0.05 }, t);
+        tl.set(to, { opacity: 1 }, t + 0.3);
+        tl.fromTo(`${to} .hl`, { yPercent: 100, opacity: 0 }, { yPercent: 0, opacity: 1, duration: 0.5, ease: E3, stagger: 0.09 }, t + 0.32);
+        tl.to(sFrom, { opacity: 0, x: 24, duration: 0.25, ease: "power2.in" }, t + 0.05);
+        tl.fromTo(sTo, { x: -24, opacity: 0 }, { x: 0, opacity: 1, duration: 0.5, ease: E3 }, t + 0.42);
+      }
+      function tabTo(t, from, to) {
+        tl.to(from, { yPercent: -110, duration: 0.4, ease: "power3.inOut" }, t);
+        tl.fromTo(to, { yPercent: 110 }, { yPercent: 0, duration: 0.4, ease: "power3.inOut" }, t);
+      }
+      swap(TL.main_head2 - 0.15, "#h1", "#h2", "#s1", "#s2");
+      swap(TL.main_head3 - 0.15, "#h2", "#h3", "#s2", "#s3");
+
+      // ---- ③ スロー（帯が抜けた直後に切り替え）
+      const R0 = S.r1 + 0.42;
+      swap(R0, "#h3", "#h4", "#s3", "#s4");
+      tabTo(R0, "#tabA", "#tabB");
+      tl.to("#livePill", { clipPath: "inset(0% 100% 0% 0%)", duration: 0.35, ease: "power3.inOut" }, R0);
+      tl.to("#replayPill", { clipPath: "inset(0% 0% 0% 0%)", duration: 0.45, ease: "power3.inOut" }, R0 + 0.1);
+      tl.to("#liveTime", { opacity: 0, duration: 0.25 }, R0);
+      tl.to("#slowTxt", { opacity: 1, duration: 0.35, ease: E3 }, R0 + 0.2);
+      tl.to("#srcIn", { opacity: 0, duration: 0.25 }, R0);
+      swap(S.r2 - 0.1, "#h4", "#h5", "#s4", "#s5");
+      swap(S.r3 - 0.1, "#h5", "#h6", "#s5", "#s6");
+
+      // 止め絵：周りを少し暗くして、丸を描く
+      function spot(n, t0, cx, cy) {
+        tl.set(`#dim${n}`, { background: `radial-gradient(circle at ${cx}px ${cy}px, rgba(0,0,0,0) 0px, rgba(0,0,0,0) 150px, rgba(0,0,0,.42) 330px)` }, t0);
+        tl.to(`#dim${n}`, { opacity: 1, duration: 0.45, ease: "sine.out" }, t0 + 0.05);
+        tl.fromTo(`#ring${n}`, { scale: 1.35, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.45, ease: "back.out(1.6)" }, t0 + 0.1);
+        tl.to(`#ring${n} circle`, { strokeDashoffset: 0, duration: 0.55, ease: "power2.inOut" }, t0 + 0.12);
+        tl.fromTo(`#tag${n}`, { opacity: 0, y: 14 }, { opacity: 1, y: 0, duration: 0.4, ease: E3 }, t0 + 0.45);
+      }
+      spot(2, S.r2f, TL.circle_r2.x, TL.circle_r2.y);
+      spot(3, S.r3f, TL.circle_r3.x, TL.circle_r3.y);
+
+      // ---- ④ 締め
+      const C0 = S.close + 0.1;
+      swap(C0, "#h6", "#h7", "#s6", "#s7");
+      tabTo(C0, "#tabB", "#tabC");
+      tl.to("#replayPill", { clipPath: "inset(0% 0% 0% 100%)", duration: 0.35, ease: "power3.inOut" }, C0);
+      tl.to("#livePill", { clipPath: "inset(0% 0% 0% 0%)", duration: 0.45, ease: "power3.inOut" }, C0 + 0.1);
+      tl.to("#slowTxt", { opacity: 0, duration: 0.25 }, C0);
+      tl.to("#liveTime", { opacity: 1, duration: 0.35, ease: E3 }, C0 + 0.2);
+      tl.to("#srcIn", { opacity: 1, duration: 0.35 }, C0 + 0.2);
+
+      window.__timelines["main"] = tl;
+      tl.seek(0);
+    </script>
+  </body>
+</html>
+"""
+
+S = tl["sections"]
+c2, c3 = tl["circle_r2"], tl["circle_r3"]
+rep = {
+    "__TOTAL__": f"{TOTAL}",
+    "__OPEND__": f"{round(S['main'] + 0.05, 4)}",
+    "__MAIN__": f"{round(S['main'], 4)}",
+    "__AFTERMAIN__": f"{round(TOTAL - S['main'], 4)}",
+    "__R2F__": f"{round(S['r2f'], 4)}", "__R2FD__": f"{round(S['r3'] - S['r2f'], 4)}",
+    "__R3F__": f"{round(S['r3f'], 4)}", "__R3FD__": f"{round(S['close'] - S['r3f'], 4)}",
+    "__C2X__": str(c2["x"]), "__C2Y__": str(c2["y"]), "__T2X__": str(c2["x"] + 95), "__T2Y__": str(c2["y"] - 150),
+    "__C3X__": str(c3["x"]), "__C3Y__": str(c3["y"]), "__T3X__": str(c3["x"] - 250), "__T3Y__": str(c3["y"] - 40),
+    "__W1S__": f"{round(S['main'] - 0.4, 4)}", "__W2S__": f"{round(S['r1'] - 0.4, 4)}", "__W3S__": f"{round(S['close'] - 0.4, 4)}",
+    "__TICKER__": TICKER_ONE * 4,
+    "__SECTIONS__": json.dumps(S), "__TL__": json.dumps(tl, ensure_ascii=False),
+}
+for k, v in rep.items():
+    html = html.replace(k, v)
+open(os.path.join(HERE, "index.html"), "w").write(html)
+print("index.html を書き出しました", TOTAL, "秒")
