@@ -50,9 +50,14 @@ FFmpeg・yt-dlp・Whisper・Remotion・HyperFrames を編集の道具として�
 
 ### yt-dlp（URL からの取得）
 
-- 例：`yt-dlp -f "bv*+ba/b" --merge-output-format mp4 -o "footage/<案件>/%(title)s.%(ext)s" <URL>`。中身の確認だけなら `--simulate --print "%(title)s %(duration)s %(resolution)s"`
-- **YouTube はこのクラウド環境から取得できない**（2026-11-20 実測：HTTP 429 Too Many Requests。クラウドの接続元が YouTube に制限されている）。YouTube の動画はファイルか Drive のリンクで受け取る。YouTube を試すときは `--js-runtimes node` を付ける（付けないと「JavaScript の実行環境がない」と警告が出る）
-- Vimeo はログインが必要と返された。Wikimedia Commons の動画は情報（題名・尺・4000×2250）を取得できた（ダウンロードまでは未実施）
+- yt-dlp は YouTube 専用ではなく、多数の動画サイトに対応している（YouTube 以外のサイトでも使う。2026-11-20 ユーザー指摘）。対応サイトは `yt-dlp --list-extractors`
+- 例：`yt-dlp -f "bv*+ba/b" --merge-output-format mp4 -o "footage/<案件>/%(title)s.%(ext)s" <URL>`。中身の確認だけなら `--simulate --print "%(title)s %(duration)s %(resolution)s"`、選べる画質の一覧は `-F`
+- サイトごとの実測（2026-11-20）：
+  - Wikimedia Commons：取得できた（画質の一覧の取得と、854×480 の一部区間のダウンロードまで確認）
+  - YouTube：取得できない（HTTP 429 Too Many Requests。クラウドの接続元が YouTube に制限されている）。YouTube の動画はファイルか Drive のリンクで受け取る。試すときは `--js-runtimes node` を付ける（付けないと「JavaScript の実行環境がない」と警告が出る）
+  - Vimeo：ログインが必要と返された
+  - 上記以外のサイトは未確認。初めてのサイトは `--simulate` で取得できるかを先に確かめる
+- `--download-sections "*開始-終了"` の区間ダウンロードは、キーフレーム単位で切られるため指定より長くなる（5秒を指定して6.8秒になった）。編集で使う区間は、全体を取得してから edit.py の `in`／`out` で決める
 - 使ってよいのは、ユーザー自身の動画や、利用が許されている素材に限る
 
 ### Remotion（ユーザーの許可）
